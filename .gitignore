@@ -1,0 +1,7 @@
+*.db
+.idea
+banner
+*.csv
+generate_test_dnr_data.py
+*_old
+
