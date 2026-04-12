@@ -118,27 +118,13 @@ suggesting a close personal relationship to that contact).
 
 ## Errors
 The following is a list of all error names, their descriptions and what might cause them:
-* `emptyPathError`: `-r, --record arg is empty, no path specified`: This error occurs when the `-r, --record` argument is given \\ 
-blank spaces or nothing at all (ex. `""`, `"     "`).
-* `noTargetSpecifiedError`: `-t, --target arg is empty, no target specified`: This error occurs when the `-t, --target` argument \\
-is given blank spaces or nothing at all (ex. `""`, `"     "`).
-* `pathError`: `Could not find 'FILE PATH', check path and try again`: This error occurs when CANDEW cannot find the file/path \\
-provided to it via the `-r, --record` argument. Double check that you have the entered the file name/path correctly and try \\
-again. 
-* `eventElementCountError`: `DNR event line 'LINE NUMBER' has incorrect number of elements: 'ENTRY ELEMENT COUNT' (required: 6)`:\\
-This error occurs when CANDEW comes across a DNR event that does not have exactly 6 elements in it. To resolve this issue, check\\
-the entry line number provided by the error to see which entry in the CSV file is causing the problem.
-* `loadCountError`: `Not all event data was loaded into SQLite file, try again`. This error occurs if not all of the DNR event \\
-data was loaded from the CSV file into the SQLite file `.candew_dnr.db`. If this happens, simply try again.
-* `targetNotFoundError`: `Target 'NAME' was not found in DNR event data, double check and try again`. This occurs if CANDEW \\
-cannot find the target specified via the `-t, --target` argument. Double check that you entered the number/name correctly and \\
-try again. If that does not work, check the file specified via `-r, --records` and try again. 
-* `targetCountMismatchError`: `Target occurrence count does not match number of DNR events: 'TARGET COUNT/TOTAL EVENT COUNT'`. \\
-This error occurs if the number of times the target's number/name shows up in the DNR data is not equal to the number of \\
-events. This could be because either the target occurs too many times in the event data (ex. an entry shows the calling and \\
-called number both to belong to the target) or occurs too few times (ex. an entry shows the calling and called number to belong \\
-to two different contacts, neither one being the target). To resolve this issue, you will need to go through the DNR data file \\
-and determine which entries are causing the error. Once fixed, try again. 
+* `emptyPathError`: `-r, --record arg is empty, no path specified`: This error occurs when the `-r, --record` argument is given blank spaces or nothing at all (ex. `""`, `"     "`).
+* `noTargetSpecifiedError`: `-t, --target arg is empty, no target specified`: This error occurs when the `-t, --target` argument is given blank spaces or nothing at all (ex. `""`, `"     "`).
+* `pathError`: `Could not find 'FILE PATH', check path and try again`: This error occurs when CANDEW cannot find the file/path provided to it via the `-r, --record` argument. Double check that you have the entered the file name/path correctly and try again. 
+* `eventElementCountError`: `DNR event line 'LINE NUMBER' has incorrect number of elements: 'ENTRY ELEMENT COUNT' (required: 6)`: This error occurs when CANDEW comes across a DNR event that does not have exactly 6 elements in it. To resolve this issue, check the entry line number provided by the error to see which entry in the CSV file is causing the problem.
+* `loadCountError`: `Not all event data was loaded into SQLite file, try again`. This error occurs if not all of the DNR event data was loaded from the CSV file into the SQLite file `.candew_dnr.db`. If this happens, simply try again.
+* `targetNotFoundError`: `Target 'NAME' was not found in DNR event data, double check and try again`. This occurs if CANDEW cannot find the target specified via the `-t, --target` argument. Double check that you entered the number/name correctly and try again. If that does not work, check the file specified via `-r, --records` and try again. 
+* `targetCountMismatchError`: `Target occurrence count does not match number of DNR events: 'TARGET COUNT/TOTAL EVENT COUNT'`. This error occurs if the number of times the target's number/name shows up in the DNR data is not equal to the number of events. This could be because either the target occurs too many times in the event data (ex. an entry shows the calling and called number both to belong to the target) or occurs too few times (ex. an entry shows the calling and called number to belong to two different contacts, neither one being the target). To resolve this issue, you will need to go through the DNR data file and determine which entries are causing the error. Once fixed, try again. 
 
 ## Terminology
 This section provides a list of terminology used in CANDEW and their definitions:
