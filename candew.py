@@ -24,7 +24,7 @@ import argparse
 import glob
 
 # Constant list containing the names of the days of the week
-DAYS_OF_WEEK_LIST = [
+DAYS_OF_WEEK_LIST = (
     "Monday",
     "Tuesday",
     "Wednesday",
@@ -32,10 +32,10 @@ DAYS_OF_WEEK_LIST = [
     "Friday",
     "Saturday",
     "Sunday",
-]
+)
 
 # Constant list containing the hours of the day in 24-hr format
-HOURS_OF_DAY_LIST = [
+HOURS_OF_DAY_LIST = (
     "00", "01", "02",
     "03", "04", "05",
     "06", "07", "08",
@@ -44,7 +44,7 @@ HOURS_OF_DAY_LIST = [
     "15", "16", "17",
     "18", "19", "20",
     "21", "22", "23",
-]
+)
 
 # CANDEW version number constant
 CANDEW_VERSION = "1.0.0"
