@@ -321,7 +321,6 @@ print(CANDEW_BANNER)
 print("  DNR Traffic Analysis Tool")
 print(f"  Version: {CANDEW_VERSION}")
 print("  License: GPLv3\n")
-print(GPL_BLURB)
 
 parser = argparse.ArgumentParser(description="Dialed Number Records (DNR) traffic analysis tool.")
 
@@ -329,8 +328,14 @@ parser.add_argument("-r", "--record", help="The absolute or relative path of the
                                            "the DNR event data", required=True)
 parser.add_argument("-t", "--target", help="The name or number of the target (case sensitive)",
                     required=True)
+parser.add_argument("-g", "--gpl", help="Print GPLv3 blurb and exit", action="store_true")
 
 args = parser.parse_args()
+
+# Display GPLv3 blurb if specified by user and exit
+if args.gpl:
+    print(GPL_BLURB)
+    exit()
 
 dnr_record = args.record.strip()
 dnr_target = args.target.strip()
