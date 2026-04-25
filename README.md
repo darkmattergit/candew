@@ -18,6 +18,7 @@ Windows:
 The following arguments are available:
 * `-r, --record`: The absolute or relative path of the file containing the DNR data - REQUIRED 
 * `-t, --target`: The number or name of the target of the DNR file (case sensitive) - REQUIRED
+* `-g, --gpl`: Displays a small blurb about the GPLv3 license - OPTIONAL
 * `-h, --help`: Displays the help banner - OPTIONAL
 
 ## Formatting Requirements
