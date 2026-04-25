@@ -23,8 +23,8 @@ import sqlite3
 import argparse
 import glob
 
-# Constant list containing the names of the days of the week
-DAYS_OF_WEEK_LIST = (
+# Const tuple containing the names of the days of the week
+DAYS_OF_WEEK_TUPLE = (
     "Monday",
     "Tuesday",
     "Wednesday",
@@ -34,8 +34,8 @@ DAYS_OF_WEEK_LIST = (
     "Sunday",
 )
 
-# Constant list containing the hours of the day in 24-hr format
-HOURS_OF_DAY_LIST = (
+# Const tuple containing the hours of the day in 24-hr format
+HOURS_OF_DAY_TUPLE = (
     "00", "01", "02",
     "03", "04", "05",
     "06", "07", "08",
@@ -147,7 +147,7 @@ def count_hours(hours_list: list = None, total_count:int = None) -> None:
     total_events_count = 0
 
     # Iterate through the HOURS_OF_DAY_LIST and the hours_list param to display time analysis
-    for hours_day, event_hours in zip(HOURS_OF_DAY_LIST, hours_list):
+    for hours_day, event_hours in zip(HOURS_OF_DAY_TUPLE, hours_list):
         # Add the current value of event hours to the total event count
         total_events_count += event_hours
 
@@ -173,7 +173,7 @@ def count_days_of_week(dow_list: list = None, total_count: int = None) -> None:
     total_events_count = 0
 
     # Iterate through the dow_list param and the DAYS_OF_WEEK_LIST const
-    for dow_names, dow_counts in zip(DAYS_OF_WEEK_LIST, dow_list):
+    for dow_names, dow_counts in zip(DAYS_OF_WEEK_TUPLE, dow_list):
         # Add the current element of the dow_list to the total_events_count variable
         total_events_count += dow_counts
 
@@ -220,7 +220,7 @@ def count_days_of_year(unique_days_dict: dict = None, total_count: int = None) -
         max_doy_len = 24
 
         # Format the DoY DoW
-        dow_date_and_name = f"{days_dict} ({DAYS_OF_WEEK_LIST[doy_dow_name]}): "
+        dow_date_and_name = f"{days_dict} ({DAYS_OF_WEEK_TUPLE[doy_dow_name]}): "
 
         # Initialize variable to determine how much spacing is required for alignment
         spacing_length = 0
@@ -441,7 +441,7 @@ with (open(dnr_record, "r") as dr):
 
         # Insert data to SQLite file
         crsr.execute("INSERT INTO dnr_records VALUES (?, ?, ?, ?, ?, ?, ?)", (call_date,
-                                                                      DAYS_OF_WEEK_LIST[call_date_dow_int],
+                                                                      DAYS_OF_WEEK_TUPLE[call_date_dow_int],
                                                                       call_time[:2], call_init, call_recv,
                                                                       call_start_location, call_end_location))
         conn.commit()
@@ -496,7 +496,7 @@ hours_of_day_init_count = []
 hours_of_day_recv_count = []
 
 # Iterate through the HOURS_OF_DAYS_LIST const
-for day_hours in HOURS_OF_DAY_LIST:
+for day_hours in HOURS_OF_DAY_TUPLE:
     # Get total counts based on hour of day
     crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_time = ?", (day_hours,))
     hours_of_day_total_count.append(crsr.fetchall()[0][0])
@@ -538,7 +538,7 @@ dow_init_count = []
 dow_recv_count = []
 
 # Iterate through the DAYS_OF_WEEK_LIST const
-for dow in DAYS_OF_WEEK_LIST:
+for dow in DAYS_OF_WEEK_TUPLE:
     # Get total counts based on DoW
     crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_dow = ?", (dow,))
     dow_total_count.append(crsr.fetchall()[0][0])
