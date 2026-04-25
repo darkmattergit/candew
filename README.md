@@ -40,7 +40,7 @@ the onus of quality control is on the user.
 
 ## Types of Analysis
 CANDEW has 5 sections of analysis in the following order:
-1. Time Analysis
+1. Hour of Day (HoD) Analysis
 2. Day of Week (DoW) Analysis
 3. Day of Year (DoY) Analysis
 4. Tower Location Analysis
@@ -74,8 +74,8 @@ anything was left over from the previous analysis, ensuring that only data the u
 > [!NOTE]
 > Larger data sets may require more time to fully analyze.
 
-### Time Analysis
-The Time Analysis section focuses on analyzing the event data based on the hour that they occurred. The results are displayed
+### Hour of Day (HoD) Analysis
+The Hour of Day analysis section focuses on analyzing the event data based on the hour that they occurred. The results are displayed
 from 00-23 and is useful for gaining insight into the hourly activity pattern of the target, which can help determine what times
 they are most active/inactive (ex. what time they go to sleep and what time they wake up).   
 
