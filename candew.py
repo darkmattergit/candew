@@ -488,7 +488,7 @@ if target_number_count != total_call_count:
 print("[+] DNR event data successfully loaded into SQLite file, preparing to analyze")
 print("[*] NOTE: Larger data sets may require more time to fully analyze")
 
-# ==================== TIME ANALYSIS ====================
+# ==================== HoD ANALYSIS ====================
 
 # Initialize lists to hold hourly counts
 hours_of_day_total_count = []
@@ -512,7 +512,7 @@ for day_hours in HOURS_OF_DAY_LIST:
     hours_of_day_recv_count.append(crsr.fetchall()[0][0])
 
 print()
-print("=================================== TIME ANALYSIS ===================================")
+print("=================================== HoD ANALYSIS ===================================")
 
 # Display results
 print()
