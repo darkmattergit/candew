@@ -109,6 +109,58 @@ def _create_bar(calculate_value: int = None, count_total:int = None) -> str:
     return calculated_bar
 
 
+def display_results(results_to_display: list | dict = None, total_count: int = None) -> None:
+    """
+    Function to display results so that the whole display process does not need to be repeatedly recreated for each
+    section.
+    :param results_to_display: The list or dict containing the results names and their counts to display.
+    :param total_count: The total number of DNR events
+    :return: None
+    """
+    # Initialize int to hold len of longest name
+    longest_name_len = 0
+
+    # Results display process if results_to_display is type list
+    if type(results_to_display) is list:
+
+        # Get the len of the longest name in the list
+        for results_lens in results_to_display:
+            if len(results_lens[0]) > longest_name_len:
+                longest_name_len = len(results_lens[0])
+
+        # Display results
+        for list_names, list_nums in results_to_display:
+            # Create the percentage bar
+            percentage_bar = _create_bar(list_nums, total_count)
+            # Calculate the percentage count
+            percentage_count = round((list_nums / total_count * 100), 2)
+
+            # Format and display results
+            print(f" {list_names}:{'':{longest_name_len - len(list_names)}} {percentage_bar} {percentage_count}% - "
+                  f"({list_nums}/{total_count})")
+
+    # Results display process if results_to_display is type dict
+    elif type(results_to_display) is dict:
+
+        # Get the len of the longest name in the dict
+        for dict_lens in results_to_display:
+            if len(dict_lens) > longest_name_len:
+                longest_name_len = len(dict_lens)
+
+        # Display results
+        for dict_names in results_to_display:
+            # Create the percentage bar
+            percentage_bar = _create_bar(results_to_display[dict_names], total_count)
+            # Calculate the percentage count
+            percentage_count = round((results_to_display[dict_names] / total_count * 100), 2)
+
+            # Format and display results
+            print(f" {dict_names}:{'':{longest_name_len - len(dict_names)}} {percentage_bar} {percentage_count}% - "
+                  f"({results_to_display[dict_names]}/{total_count})")
+
+    print()
+
+
 def order_dict(dict_to_order: dict = None) -> dict:
     """
     Order a dict from highest to lowest values.
@@ -628,75 +680,48 @@ print()
 
 # ==================== LOCATION ANALYSIS ====================
 
-# Get list of all unique start tower locations
-crsr.execute("SELECT DISTINCT start_location FROM dnr_records")
-start_location_list = crsr.fetchall()
+# Get counts of start locations
+crsr.execute("SELECT DISTINCT start_location, COUNT(*) FROM dnr_records GROUP BY 1 ORDER BY 2 DESC")
+start_location_counts = crsr.fetchall()
 
-# Get list of all unique end tower locations
-crsr.execute("SELECT DISTINCT end_location FROM dnr_records")
-end_location_list = crsr.fetchall()
+# Get counts of end locations
+crsr.execute("SELECT DISTINCT end_location, COUNT(*) FROM dnr_records GROUP BY 1 ORDER BY 2 DESC")
+end_location_counts = crsr.fetchall()
 
-# Initialize dicts to hold tower names and their respective counts
-unique_locations_total = {}
-unique_locations_start = {}
-unique_locations_end = {}
+# Construct total count dict to get total counts
+total_location_count = {}
 
-# Add start tower locations to dicts and initialize their values to 0
-for start_locations in start_location_list:
-    unique_locations_total[start_locations[0]] = 0
-    unique_locations_start[start_locations[0]] = 0
-    unique_locations_end[start_locations[0]] = 0
+for start_location_name, start_count in start_location_counts:
+   total_location_count[start_location_name] = start_count
 
-# Add end tower locations to dict and initialize their values to 0 (duplicates do not need to be worried about because
-# dict keys must be unique, and if the tower name already exists, then it will not be added again)
-for end_locations in end_location_list:
-    unique_locations_total[end_locations[0]] = 0
-    unique_locations_start[end_locations[0]] = 0
-    unique_locations_end[end_locations[0]] = 0
+for end_location_name, end_count in end_location_counts:
+    if end_location_name in total_location_count:
+        total_location_count[end_location_name] += end_count
 
-# Iterate through the locations and get counts for each tower
-for unique_locations in unique_locations_total:
-    # Starting tower locations
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE start_location = ?",(unique_locations,))
-    starting_count = crsr.fetchall()[0][0]
+    else:
+        total_location_count[end_location_name] = end_count
 
-    # Add start tower locations to total count
-    unique_locations_total[unique_locations] += starting_count
+# Order the dict from highest to lowest
+ordered_total_location_dict = order_dict(total_location_count)
 
-    # Add counts for starting towers
-    unique_locations_start[unique_locations] += starting_count
-
-    # End tower locations
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE end_location = ?", (unique_locations,))
-    ending_count = crsr.fetchall()[0][0]
-
-    # Add end tower locations to total count
-    unique_locations_total[unique_locations] += ending_count
-
-    # Add counts for end towers
-    unique_locations_end[unique_locations] += ending_count
-
+# Display results
 print("=================================== TOWER LOCATION ANALYSIS ===================================")
 print()
 
-# Display results
-print(f" [*] Total unique tower locations: {len(unique_locations_total)}")
+print(f" [*] Total number of unique tower locations: {len(ordered_total_location_dict)}")
 print()
 
 print(" Total counts per tower location")
 print(" -------------------------------")
-count_unique_locations(order_dict(unique_locations_total), total_call_count * 2)
-print()
+display_results(ordered_total_location_dict, (total_call_count * 2))
 
-print(" Total counts per START tower location")
-print(" -------------------------------------")
-count_unique_locations(order_dict(unique_locations_start), total_call_count)
-print()
+print(" Counts per START tower location")
+print(" -------------------------------")
+display_results(start_location_counts, total_call_count)
 
-print(" Total counts per END tower location")
-print(" -----------------------------------")
-count_unique_locations(order_dict(unique_locations_end), total_call_count)
-print()
+print(" Counts per END tower location")
+print(" -----------------------------")
+display_results(end_location_counts, total_call_count)
 
 # ==================== CONTACTS ANALYSIS ====================
 
