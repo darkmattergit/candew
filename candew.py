@@ -161,6 +161,33 @@ def display_results(results_to_display: list | dict = None, total_count: int = N
     print()
 
 
+def create_total_dict(list1: list = None, list2: list = None) -> dict:
+    """
+    Creates a dict by combining the results from two different lists of tuples. The tuples must be in the following
+    format: (name, value).
+    :param list1: The first list.
+    :param list2: The second list.
+    :return: dict
+    """
+    # Initialize dict
+    total_dict = {}
+
+    # Add the names and values from the first list to the dict
+    for name1, value1 in list1:
+        total_dict[name1] = value1
+
+    # Add the names and values from the second list to the dict
+    for name2, value2 in list2:
+        # If the name is already present in the dict, add value2 to the existing value
+        if name2 in total_dict:
+            total_dict[name2] += value2
+
+        else:
+            total_dict[name2] = value2
+
+    return total_dict
+
+
 def order_dict(dict_to_order: dict = None) -> dict:
     """
     Order a dict from highest to lowest values.
@@ -688,18 +715,8 @@ start_location_counts = crsr.fetchall()
 crsr.execute("SELECT DISTINCT end_location, COUNT(*) FROM dnr_records GROUP BY 1 ORDER BY 2 DESC")
 end_location_counts = crsr.fetchall()
 
-# Construct total count dict to get total counts
-total_location_count = {}
-
-for start_location_name, start_count in start_location_counts:
-   total_location_count[start_location_name] = start_count
-
-for end_location_name, end_count in end_location_counts:
-    if end_location_name in total_location_count:
-        total_location_count[end_location_name] += end_count
-
-    else:
-        total_location_count[end_location_name] = end_count
+# Create dict that contains all tower locations and their counts
+total_location_count = create_total_dict(start_location_counts, end_location_counts)
 
 # Order the dict from highest to lowest
 ordered_total_location_dict = order_dict(total_location_count)
