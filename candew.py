@@ -698,13 +698,27 @@ print(" Total counts per tower location")
 print(" -------------------------------")
 display_results(ordered_total_location_dict, (total_call_count * 2))
 
+# Zero the master dict
+zero_dict(ordered_total_location_dict)
+# Add the start location data to the dict
+add_to_dict(ordered_total_location_dict, start_location_counts)
+# Sort the dict
+start_location_ordered = order_dict(ordered_total_location_dict)
+
 print(" Counts per START tower location")
 print(" -------------------------------")
-display_results(start_location_counts, total_call_count)
+display_results(start_location_ordered, total_call_count)
+
+# Zero the master dict
+zero_dict(ordered_total_location_dict)
+# Add the end location data to the dict
+add_to_dict(ordered_total_location_dict, end_location_counts)
+# Sort the dict
+end_location_ordered = order_dict(ordered_total_location_dict)
 
 print(" Counts per END tower location")
 print(" -----------------------------")
-display_results(end_location_counts, total_call_count)
+display_results(end_location_ordered, total_call_count)
 
 # ==================== CONTACTS ANALYSIS ====================
 
