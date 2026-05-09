@@ -215,6 +215,48 @@ def order_dict(dict_to_order: dict = None) -> dict:
     return ordered_dict
 
 
+def zero_dict(dict_to_zero: dict = None) -> None:
+    """
+    Sets all values in a dict to zero.
+    :param dict_to_zero: The dict to set the values to zero.
+    :return: None
+    """
+    # Iterate through the dict and set the values to 0
+    for values in dict_to_zero:
+        dict_to_zero[values] = 0
+
+
+def add_to_dict(dict_to_use: dict = None, results_to_add: list = None) -> None:
+    """
+    Add the elements from a list to a dict. The list must be in the following format: [(name, value),]
+    :param dict_to_use: The dict to add the elements to.
+    :param results_to_add: The list that contains the elements that are to be added to the dict.
+    :return: None
+    """
+    # Iterate through the list and add the elements to the dict
+    for result_names, result_values in results_to_add:
+        dict_to_use[result_names] = result_values
+
+
+def count_total_events_dict(dict_to_count: dict = None, total_count: int = None) -> None:
+    """
+    Calculcate the total count of the values in a dict.
+    :param dict_to_count: The dict to calculate the total from.
+    :param total_count: The total number of DNR events.
+    :return: None
+    """
+    # Initialize int to hold total
+    dict_total = 0
+
+    # Calculate the total from the values of the dict
+    for values in dict_to_count:
+        dict_total += dict_to_count[values]
+
+    # Display counts
+    print(f" [*] Total events: {dict_total}/{total_count}")
+    print()
+
+
 def count_hours(hours_list: list = None, total_count:int = None) -> None:
     """
     Conducts analysis of DNR event data based on the times, specifically the hour, the events occurred.
@@ -687,16 +729,33 @@ print()
 print(" Total events per contact")
 print(" ------------------------")
 display_results(ordered_total_unique_contacts_dict, total_call_count)
+count_total_events_dict(ordered_total_unique_contacts_dict, total_call_count)
 
-# TARGET IS CALLING CONTACTS
+# ************************************* TARGET IS CALLING CONTACTS *************************************
+# Zero the master dict
+zero_dict(ordered_total_unique_contacts_dict)
+# Add the call init data to the dict
+add_to_dict(ordered_total_unique_contacts_dict, unique_call_init_contacts)
+# Sort the dict
+call_init_ordered = order_dict(ordered_total_unique_contacts_dict)
+
 print(" Total CALLING events per contact")
 print(" --------------------------------")
-display_results(unique_call_init_contacts, total_call_count)
+display_results(call_init_ordered, total_call_count)
+count_total_events_dict(call_init_ordered, total_call_count)
 
-# TARGET IS BEING CALLED BY CONTACTS
+# ************************************* TARGET IS BEING CALLED BY CONTACTS *************************************
+# Zero the master dict
+zero_dict(ordered_total_unique_contacts_dict)
+# Add the call recv data to the dict
+add_to_dict(ordered_total_unique_contacts_dict, unique_call_recv_contacts)
+# Sort the dict
+call_recv_ordered = order_dict(ordered_total_unique_contacts_dict)
+
 print(" Total CALLED events per contact")
 print(" -------------------------------")
-display_results(unique_call_recv_contacts, total_call_count)
+display_results(call_recv_ordered, total_call_count)
+count_total_events_dict(call_recv_ordered, total_call_count)
 
 # Clear out DNR data
 crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
