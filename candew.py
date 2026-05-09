@@ -742,81 +742,37 @@ display_results(end_location_counts, total_call_count)
 
 # ==================== CONTACTS ANALYSIS ====================
 
-# Get a list of all unique contacts in call_init column
-crsr.execute("SELECT DISTINCT call_init FROM dnr_records")
-distinct_call_init = crsr.fetchall()
+crsr.execute("SELECT DISTINCT call_init, COUNT(*) FROM dnr_records WHERE call_init != ? GROUP BY 1 ORDER BY 2 "
+             "DESC",(args.target,))
+unique_call_init_contacts = crsr.fetchall()
 
-# Get a list of all unique contacts in the call_recv field
-crsr.execute("SELECT DISTINCT call_recv FROM dnr_records")
-distinct_call_recv = crsr.fetchall()
+crsr.execute("SELECT DISTINCT call_recv, COUNT(*) FROM dnr_records WHERE call_recv != ? GROUP BY 1 ORDER BY 2 "
+             "DESC",(args.target,))
+unique_call_recv_contacts = crsr.fetchall()
 
-# Initialize list to hold all contacts found
-master_contact_list = []
+total_unique_contacts_dict = create_total_dict(unique_call_init_contacts, unique_call_recv_contacts)
 
-# Iterate through calling contacts list and add to master list if not in it already
-for contact_init in distinct_call_init:
-    if contact_init[0] == dnr_target:
-        pass
-    else:
-        master_contact_list.append(contact_init[0])
-
-# Iterate through called contacts list and add to master list if not in it already
-for contact_recv in distinct_call_recv:
-    if contact_recv[0] == dnr_target or contact_recv[0] in master_contact_list:
-        pass
-    else:
-        master_contact_list.append(contact_recv[0])
-
-# Initialize dicts to hold contact identifiers and associated counts
-contacts_dict_total = {}
-target_calling_contact = {}
-contact_called_target = {}
-
-for master_contacts in master_contact_list:
-    # The contact is receiving the call which means this is a calling event
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_recv = ?", (master_contacts,))
-    contact_init_count = crsr.fetchall()[0][0]
-
-    # Add the called contacts to the master dict
-    contacts_dict_total[master_contacts] = contact_init_count
-
-    # Add the called contacts to the called contacts dict
-    target_calling_contact[master_contacts] = contact_init_count
-
-    # The contact is initiating the calling which means this is a called event
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_init = ?", (master_contacts,))
-    contact_recv_count = crsr.fetchall()[0][0]
-
-    # Add the calling contacts to the master dict (duplicates do not need to be worried about because
-    # # dict keys must be unique, and if the tower name already exists, then it will not be added again)
-    contacts_dict_total[master_contacts] += contact_recv_count
-
-    # Add the calling contacts to the calling contacts dict
-    contact_called_target[master_contacts] = contact_recv_count
+ordered_total_unique_contacts_dict = order_dict(total_unique_contacts_dict)
 
 print("=================================== CONTACTS ANALYSIS ===================================")
 print()
 
-# Display results
-print(f" [*] Total number of unique contacts: {len(contacts_dict_total)}")
+print(f" [*] Total number of unique contacts: {len(ordered_total_unique_contacts_dict)}")
 print()
 
 print(" Total events per contact")
 print(" ------------------------")
-contact_analysis(order_dict(contacts_dict_total), total_call_count)
-print()
+display_results(ordered_total_unique_contacts_dict, total_call_count)
 
 # TARGET IS CALLING CONTACTS
 print(" Total CALLING events per contact")
 print(" --------------------------------")
-contact_analysis(order_dict(target_calling_contact), total_call_count)
-print()
+display_results(unique_call_init_contacts, total_call_count)
 
 # TARGET IS BEING CALLED BY CONTACTS
 print(" Total CALLED events per contact")
 print(" -------------------------------")
-contact_analysis(order_dict(contact_called_target), total_call_count)
-print()
+display_results(unique_call_recv_contacts, total_call_count)
 
 # Clear out DNR data
 crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
