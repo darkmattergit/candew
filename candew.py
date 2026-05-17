@@ -549,7 +549,7 @@ hours_of_day_total_count = []
 hours_of_day_init_count = []
 hours_of_day_recv_count = []
 
-# Iterate through the HOURS_OF_DAYS_LIST const
+# Iterate through the HOURS_OF_DAY_TUPLE const
 for day_hours in HOURS_OF_DAY_TUPLE:
     # Get total counts based on hour of day
     crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_time = ?", (day_hours,))
@@ -591,7 +591,7 @@ dow_total_count = []
 dow_init_count = []
 dow_recv_count = []
 
-# Iterate through the DAYS_OF_WEEK_LIST const
+# Iterate through the DAYS_OF_WEEK_TUPLE const
 for dow in DAYS_OF_WEEK_TUPLE:
     # Get total counts based on DoW
     crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_dow = ?", (dow,))
