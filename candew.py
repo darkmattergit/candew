@@ -533,7 +533,7 @@ if target_number_count != total_call_count:
 print("[+] DNR event data successfully loaded into SQLite file, preparing to analyze")
 print("[*] NOTE: Larger data sets may require more time to fully analyze")
 
-# ==================== HoD ANALYSIS ====================
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ HoD ANALYSIS //////////////////////////////////
 
 # Initialize lists to hold hourly counts
 hours_of_day_total_count = []
@@ -576,7 +576,7 @@ print(" ----------------------------")
 count_hours(hours_of_day_recv_count, total_call_count)
 print()
 
-# ==================== DoW ANALYSIS ====================
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ DoW ANALYSIS //////////////////////////////////
 # Initialize lists to hold DoW counts
 dow_total_count = []
 dow_init_count = []
@@ -621,7 +621,7 @@ print(" ---------------------------")
 count_days_of_week(dow_recv_count, total_call_count)
 print()
 
-# ==================== DoY ANALYSIS ====================
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ DoY ANALYSIS //////////////////////////////////
 
 # Get DoY from DNR data
 crsr.execute("SELECT DISTINCT call_date FROM dnr_records")
@@ -671,7 +671,7 @@ print(" ---------------------------")
 count_days_of_year(unique_days_dict_recv, total_call_count)
 print()
 
-# ==================== LOCATION ANALYSIS ====================
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ LOCATION ANALYSIS //////////////////////////////////
 
 # Get counts of start locations
 crsr.execute("SELECT DISTINCT start_location, COUNT(*) FROM dnr_records GROUP BY 1 ORDER BY 2 DESC")
@@ -720,7 +720,7 @@ print(" Counts per END tower location")
 print(" -----------------------------")
 display_results(end_location_ordered, total_call_count)
 
-# ==================== CONTACTS ANALYSIS ====================
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ CONTACTS ANALYSIS //////////////////////////////////
 
 crsr.execute("SELECT DISTINCT call_init, COUNT(*) FROM dnr_records WHERE call_init != ? GROUP BY 1 ORDER BY 2 "
              "DESC",(args.target,))
