@@ -491,6 +491,8 @@ with (open(dnr_record, "r") as dr):
                                                                       call_start_location, call_end_location))
         conn.commit()
 
+print("[*] Running checks to ensure data was loaded correctly")
+
 # Get the number entries present in SQLite file
 crsr.execute("SELECT COUNT(*) FROM dnr_records")
 confirm_load_count = crsr.fetchall()[0][0]
@@ -506,6 +508,8 @@ if confirm_load_count != total_call_count:
     conn.close()
     exit()
 
+print("    [+] Load count check: OKAY")
+
 if target_number_count <= 0:
     print(f"[!] targetNotFoundError :: Target '{dnr_target}' was not found in DNR event data, double check and try "
           f"again")
@@ -518,6 +522,8 @@ if target_number_count <= 0:
     conn.close()
     exit()
 
+print("    [+] Target check: OKAY")
+
 if target_number_count != total_call_count:
     print(f"[!] targetCountMismatchError :: Target occurrence count does not match number of DNR events: "
           f"{target_number_count}/{total_call_count}")
@@ -529,6 +535,9 @@ if target_number_count != total_call_count:
     crsr.close()
     conn.close()
     exit()
+
+print("    [+] Target count check: OKAY")
+print()
 
 print("[+] DNR event data successfully loaded into SQLite file, preparing to analyze")
 print("[*] NOTE: Larger data sets may require more time to fully analyze")
