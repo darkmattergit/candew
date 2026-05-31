@@ -22,6 +22,7 @@ import csv
 import sqlite3
 import argparse
 import glob
+import math
 
 # Const tuple containing the names of the days of the week
 DAYS_OF_WEEK_TUPLE = (
@@ -361,6 +362,35 @@ def count_days_of_year(unique_days_dict: dict = None, total_count: int = None) -
     print(f" [*] Total events: {total_events}/{total_count}")
 
 
+def display_duration_results(duration_dict: dict = None, total_seconds: int = None) -> None:
+    """
+    Special display function for the duration analysis section.
+    :param duration_dict: The dict containing the contacts and their summed call durations
+    :param total_seconds: The total sum of all call durations in seconds
+    :return: None
+    """
+    # Initialize spacing variables
+    longest_name_len = 0
+    longest_duration_seconds_len = 0
+
+    # Determine the len of the longest contact's name and the length of the longest call duration
+    for name_lens in duration_dict:
+        if len(name_lens) > longest_name_len:
+            longest_name_len = len(name_lens)
+
+        if len(str(duration_dict[name_lens])) > longest_duration_seconds_len:
+            longest_duration_seconds_len = len(str(duration_dict[name_lens]))
+
+    # Display results
+    for names in duration_dict:
+        name_spacing_required = (longest_name_len - len(names))
+        seconds_spacing_required = (longest_duration_seconds_len - len(str(duration_dict[names]))) + 5
+        print(f" {names}:{'':{name_spacing_required}} {_create_bar(duration_dict[names], total_seconds)} "
+              f"{duration_dict[names]} seconds {'':{seconds_spacing_required}} {duration_dict[names] // 60} minutes")
+
+    print()
+
+
 # Display the opening banner
 print(CANDEW_BANNER)
 print("  DNR Traffic Analysis Tool")
@@ -373,6 +403,8 @@ parser.add_argument("-r", "--record", help="The absolute or relative path of the
                                            "the DNR event data", required=True)
 parser.add_argument("-t", "--target", help="The name or number of the target (case sensitive)",
                     required=True)
+parser.add_argument("-z", "--zscore", help="Set the z-score threshold for detecting outlier events",
+                    default=3.00, type=float)
 parser.add_argument("-g", "--gpl", help="Print GPLv3 blurb and exit", action="store_true")
 
 args = parser.parse_args()
@@ -407,8 +439,8 @@ conn = sqlite3.connect(".candew_dnr.db")
 crsr = conn.cursor()
 
 # Create table if it does not exist
-crsr.execute("CREATE TABLE IF NOT EXISTS dnr_records (call_date TEXT, call_dow TEXT, call_time TEXT, call_init "
-             "TEXT, call_recv TEXT, start_location TEXT, end_location TEXT)")
+crsr.execute("CREATE TABLE IF NOT EXISTS dnr_records (event_line TEXT, call_date TEXT, call_dow TEXT, call_time TEXT, "
+             "call_init TEXT, call_recv TEXT, call_duration TEXT, start_location TEXT, end_location TEXT)")
 conn.commit()
 
 # Clear any data that may have been left over from previous analysis
@@ -435,10 +467,10 @@ with (open(dnr_record, "r") as dr):
         # For each entry, add 1 to indicate current entry line number being imported
         event_line_count += 1
 
-        # Check to make sure that only 6 elements are present in the entry
-        if len(event_data) != 6:
+        # Check to make sure that only 7 elements are present in the entry
+        if len(event_data) != 7:
             print(f"[!] eventElementCountError :: DNR event line {event_line_count} has incorrect number of "
-                  f"elements: {len(event_data)} (required: 6)")
+                  f"elements: {len(event_data)} (required: 7)")
 
             # Element count was not equal to 6, clean up and exit
             crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
@@ -450,8 +482,9 @@ with (open(dnr_record, "r") as dr):
         call_time = event_data[1].strip()
         call_init = event_data[2].strip()
         call_recv = event_data[3].strip()
-        call_start_location = event_data[4].strip()
-        call_end_location = event_data[5].strip()
+        call_duration = event_data[4].strip()
+        call_start_location = event_data[5].strip()
+        call_end_location = event_data[6].strip()
 
         # Special check to catch any entries where both the calling and called numbers belong to the target
         if call_init == dnr_target and call_recv == dnr_target:
@@ -485,10 +518,12 @@ with (open(dnr_record, "r") as dr):
             weekend_count += 1
 
         # Insert data to SQLite file
-        crsr.execute("INSERT INTO dnr_records VALUES (?, ?, ?, ?, ?, ?, ?)", (call_date,
+        crsr.execute("INSERT INTO dnr_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (event_line_count,
+                                                                                    call_date,
                                                                       DAYS_OF_WEEK_TUPLE[call_date_dow_int],
                                                                       call_time[:2], call_init, call_recv,
-                                                                      call_start_location, call_end_location))
+                                                                      call_duration, call_start_location,
+                                                                      call_end_location))
         conn.commit()
 
 print("[*] Running checks to ensure data was loaded correctly")
@@ -779,6 +814,101 @@ print(" Total CALLED events per contact")
 print(" -------------------------------")
 display_results(call_recv_ordered, total_call_count)
 count_total_events_dict(call_recv_ordered, total_call_count)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ DURATION ANALYSIS //////////////////////////////////
+
+# Get count of all events where the call duration is > 0
+crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_duration > 0")
+call_event_counts = crsr.fetchall()[0][0]
+
+if call_event_counts > 0:
+    # Select all events where target is being called and get sum of call durations per distinct contact
+    crsr.execute("SELECT DISTINCT call_init, SUM(call_duration) FROM dnr_records WHERE call_init != ? GROUP BY 1 "
+                 "ORDER BY 2 DESC", (args.target,))
+    call_init_durations = crsr.fetchall()
+
+    # Select all events where target is calling contact and get sum of call durations per distinct contact
+    crsr.execute("SELECT DISTINCT call_recv, SUM(call_duration) FROM dnr_records WHERE call_recv != ? GROUP BY 1 "
+                 "ORDER BY 2 DESC", (args.target,))
+    call_recv_durations = crsr.fetchall()
+
+    # Create and order the dict containing all contacts and the total call durations in seconds
+    durations_total_dict = create_total_dict(call_init_durations, call_recv_durations)
+    ordered_durations_total_dict = order_dict(durations_total_dict)
+
+    print("=================================== DURATION ANALYSIS ===================================")
+    print()
+    print(f" [*] Total call events: {call_event_counts}")
+
+    # Calculate the total call duration by adding all contact call durations together
+    total_call_seconds = 0
+    for call_minutes in ordered_durations_total_dict:
+        total_call_seconds += ordered_durations_total_dict[call_minutes]
+
+    # Calculate minutes from seconds
+    total_call_minutes = round(total_call_seconds / 60)
+    print(f" [*] Total call minutes: {total_call_minutes} minutes ({total_call_seconds} seconds)")
+    print()
+
+    print(" Total duration sums per contact")
+    print(" -------------------------------")
+    display_duration_results(ordered_durations_total_dict, total_call_seconds)
+
+    print(" Total CALLING event duration sums per contact")
+    print(" ---------------------------------------------")
+    # Zero the total dict
+    zero_dict(ordered_durations_total_dict)
+    # Add calling event durations to master dict
+    add_to_dict(ordered_durations_total_dict, call_init_durations)
+    # Order master dict
+    ordered_calling_duration = order_dict(ordered_durations_total_dict)
+    display_duration_results(ordered_calling_duration, total_call_seconds)
+
+    print(" Total CALLED event duration sums per contact")
+    print(" --------------------------------------------")
+    # Zero the master dict
+    zero_dict(ordered_calling_duration)
+    # Add called events durations to master dict
+    add_to_dict(ordered_calling_duration, call_recv_durations)
+    # Order master dict
+    ordered_called_duration = order_dict(ordered_calling_duration)
+    display_duration_results(ordered_called_duration, total_call_seconds)
+
+    # Get all events where call duration is > 0
+    crsr.execute("SELECT event_line, call_date, call_time, call_init, call_recv, call_duration FROM dnr_records WHERE "
+                 "call_duration > 0")
+    zscore_data = crsr.fetchall()
+
+    # Calculate the average length of a call in seconds, round to two decimal places
+    average_call_duration = round(total_call_seconds / len(zscore_data), 2)
+
+    print()
+
+    # Calculate standard deviation, round it to 2 decimal places
+    get_std_deviation = 0
+    for stdev_values in zscore_data:
+        get_std_deviation += (round(((int(stdev_values[5]) - average_call_duration) ** 2), 2))
+
+    get_std_deviation = round(math.sqrt(get_std_deviation / len(zscore_data)), 2)
+
+    # Calculate the z-score for each call event, display events that exceed threshold set by -z, --zscore arg
+    for zscores in zscore_data:
+        calculated_zscore = round((int(zscores[5]) - average_call_duration) / get_std_deviation, 2)
+
+        if calculated_zscore >= args.zscore or calculated_zscore <= -args.zscore:
+            print("********** OUTLIER EVENT DETECTED **********")
+            print(f" [*] Event Line Number: {zscores[0]}")
+            print(f" [*] Event Date: {zscores[1]}")
+            print(f" [*] Event Hour: {zscores[2]}")
+            print(f" [*] Calling Number: {zscores[3]}")
+            print(f" [*] Called Number: {zscores[4]}")
+            print(f" [*] Call Duration: {zscores[5]} seconds ({round(int(zscores[5]) // 60, 2)} minutes)")
+            print(f" [*] Z-Score: {calculated_zscore}")
+            print()
+
+else:
+    # No call events where duration is > 0, skip duration analysis section
+    print("[!] No events with call duration > 0 found, skipping duration analysis")
 
 # Clear out DNR data
 crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")

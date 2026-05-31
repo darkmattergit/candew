@@ -18,17 +18,19 @@ Windows:
 The following arguments are available:
 * `-r, --record`: The absolute or relative path of the file containing the DNR data - REQUIRED 
 * `-t, --target`: The number or name of the target of the DNR file (case sensitive) - REQUIRED
+* `-z, --zscore`: Set The z-score threshold for detecting outlier events (default value: 3.00) - OPTIONAL
 * `-g, --gpl`: Displays a small blurb about the GPLv3 license - OPTIONAL
 * `-h, --help`: Displays the help banner - OPTIONAL
 
 ## Formatting Requirements
 For CANDEW to analyze the DNR data, it must follow certain formatting requirements:
 * The DNR data must be in `Comma Separated Value (CSV)` format
-* There must be 6 elements per entry in the following order:
+* There must be 7 elements per entry in the following order:
   - Date (YYYY-MM-DD)
   - Time (HH) - (in 24-hr format)
   - Calling Number
   - Called Number
+  - Call Duration - (in seconds)
   - Tower Start Location
   - Tower End Location
   
@@ -40,16 +42,18 @@ Furthermore, CANDEW does not check the quality of the data given to it. If it is
 the onus of quality control is on the user.
 
 ## Types of Analysis
-CANDEW has 5 sections of analysis in the following order:
+CANDEW has 6 sections of analysis in the following order:
 1. Hour of Day (HoD) Analysis
 2. Day of Week (DoW) Analysis
 3. Day of Year (DoY) Analysis
 4. Tower Location Analysis
 5. Contacts Analysis
+6. Duration Analysis
 
 Each section follows a standard format, consisting of a `total count analysis`, a `calling count analysis` and a 
 `called count analysis` (and in the case of the Tower Location Analysis section, a `total location count analysis`, 
-a `start location count analysis` and an `end location count analysis`). 
+a `start location count analysis` and an `end location count analysis`). Some section may include additional pieces of
+information, such as the Duration Analysis section (see section description for more information). 
 
 The results are displayed via text-based bars and the associated numerical data. The bars provide a visual represetation of 
 the percentage counts, where each `=` is equivalent to 5%. Because of the way the bars work, the values displayed in them 
@@ -117,12 +121,29 @@ suggesting a close personal relationship to that contact).
 > numbers and names where possible (ex. `999-999-9999 (Alice)`, `Bob (123-456-7890)`, etc.). Additionally,
 > this alleviates the drawback of using only names, as it will ensure that every contact is unique and recognizable.
 
+### Duration Analysis
+The duration analysis section focuses on analyzing the duration of calls between the target and their contacts. This section
+shows the user a list of the target's contacts ordered from highest to lowest based on their call duration sums. Additionally,
+this section also informs the user of any call events that deviate from the average call duration by calculating their z-scores.
+If there are no events where the call duration is > 0, then this section is skipped. The threshold for classifying a call event 
+as an outlier can be set using the "-z, --zscore" arg. Below is an example of a detected outlier event:
+```
+********** OUTLIER EVENT DETECTED **********
+ [*] Event Line Number: 8
+ [*] Event Date: 2004-10-08
+ [*] Event Hour: 12
+ [*] Calling Number: dave
+ [*] Called Number: alice
+ [*] Call Duration: 1782 seconds (29 minutes)
+ [*] Z-Score: 3.09
+```
+
 ## Errors
 The following is a list of all error names, their descriptions and what might cause them:
 * `emptyPathError`: `-r, --record arg is empty, no path specified`: This error occurs when the `-r, --record` argument is given blank spaces or nothing at all (ex. `""`, `"     "`).
 * `noTargetSpecifiedError`: `-t, --target arg is empty, no target specified`: This error occurs when the `-t, --target` argument is given blank spaces or nothing at all (ex. `""`, `"     "`).
 * `pathError`: `Could not find 'FILE PATH', check path and try again`: This error occurs when CANDEW cannot find the file/path provided to it via the `-r, --record` argument. Double check that you have the entered the file name/path correctly and try again. 
-* `eventElementCountError`: `DNR event line 'LINE NUMBER' has incorrect number of elements: 'ENTRY ELEMENT COUNT' (required: 6)`: This error occurs when CANDEW comes across a DNR event that does not have exactly 6 elements in it. To resolve this issue, check the entry line number provided by the error to see which entry in the CSV file is causing the problem.
+* `eventElementCountError`: `DNR event line 'LINE NUMBER' has incorrect number of elements: 'ENTRY ELEMENT COUNT' (required: 7)`: This error occurs when CANDEW comes across a DNR event that does not have exactly 7 elements in it. To resolve this issue, check the entry line number provided by the error to see which entry in the CSV file is causing the problem.
 * `loadCountError`: `Not all event data was loaded into SQLite file, try again`. This error occurs if not all of the DNR event data was loaded from the CSV file into the SQLite file `.candew_dnr.db`. If this happens, simply try again.
 * `targetNotFoundError`: `Target 'NAME' was not found in DNR event data, double check and try again`. This occurs if CANDEW cannot find the target specified via the `-t, --target` argument. Double check that you entered the number/name correctly and try again. If that does not work, check the file specified via `-r, --records` and try again. 
 * `targetCountMismatchError`: `Target occurrence count does not match number of DNR events: 'TARGET COUNT/TOTAL EVENT COUNT'`. This error occurs if the number of times the target's number/name shows up in the DNR data is not equal to the number of events. This could be because either the target occurs too many times in the event data (ex. an entry shows the calling and called number both to belong to the target) or occurs too few times (ex. an entry shows the calling and called number to belong to two different contacts, neither one being the target). To resolve this issue, you will need to go through the DNR data file and determine which entries are causing the error. Once fixed, try again. 
