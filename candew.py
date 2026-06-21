@@ -670,52 +670,60 @@ print()
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ DoY ANALYSIS //////////////////////////////////
 
-# Get DoY from DNR data
-crsr.execute("SELECT DISTINCT call_date FROM dnr_records")
-unique_days = crsr.fetchall()
+# Initialize dict to hold DoY data
+unique_days = {}
 
-# Initialize dicts to hold DoY counts
-unique_days_dict_total = {}
-unique_days_dict_init = {}
-unique_days_dict_recv = {}
-
-# Iterate through the DoY in DNR data
-for unique in unique_days:
-
-    # Get total counts per DoY
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_date = ?", (unique[0],))
-    unique_days_dict_total[unique[0]] = crsr.fetchall()[0][0]
-
-    # Get counts per DoY and where target is calling number
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_date = ? AND call_init = ?",
-                 (unique[0], dnr_target))
-    unique_days_dict_init[unique[0]] = crsr.fetchall()[0][0]
-
-    # Get counts per DoY and where target is called number
-    crsr.execute("SELECT COUNT(*) FROM dnr_records WHERE call_date = ? AND call_recv = ?",
-                 (unique[0], dnr_target))
-    unique_days_dict_recv[unique[0]] = crsr.fetchall()[0][0]
+# Get distinct DoY and their total counts
+crsr.execute("SELECT DISTINCT call_date, COUNT(*) FROM dnr_records GROUP BY 1 ORDER BY 1 ASC")
+add_to_dict(unique_days, crsr.fetchall())
 
 print("=================================== DoY ANALYSIS ===================================")
 print()
 
-# Display results
-print(f" [*] Number of unique days: {len(unique_days_dict_total)}")
+# Display number of DoY in DNR data
+print(f" [*] Number of unique days: {len(unique_days)}")
 print()
 
+# Display results of total DoY count query
 print(" Total events per DoY")
 print(" --------------------")
-count_days_of_year(unique_days_dict_total, total_call_count)
+count_days_of_year(unique_days, total_call_count)
 print()
 
+# Display results of DoY init count query
 print(" Total CALLING events per DoY")
 print(" ----------------------------")
-count_days_of_year(unique_days_dict_init, total_call_count)
+
+# Zero the dict
+zero_dict(unique_days)
+
+# Get counts of DoY init events
+crsr.execute("SELECT DISTINCT call_date, COUNT(*) FROM dnr_records WHERE call_init = ? GROUP BY 1 ORDER BY 1 ASC",
+             (args.target,))
+
+# Add counts to dict
+add_to_dict(unique_days, crsr.fetchall())
+
+# Display results
+count_days_of_year(unique_days, total_call_count)
 print()
 
+# Display results of DoY recv count query
 print(" Total CALLED events per DoY")
 print(" ---------------------------")
-count_days_of_year(unique_days_dict_recv, total_call_count)
+
+# Zero the dict
+zero_dict(unique_days)
+
+# Get counts of DoY recv events
+crsr.execute("SELECT DISTINCT call_date, COUNT(*) FROM dnr_records WHERE call_recv = ? GROUP BY 1 ORDER BY 1 ASC",
+             (args.target,))
+
+# Add counts to dict
+add_to_dict(unique_days, crsr.fetchall())
+
+# Display results
+count_days_of_year(unique_days, total_call_count)
 print()
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ LOCATION ANALYSIS //////////////////////////////////
