@@ -42,13 +42,14 @@ Furthermore, CANDEW does not check the quality of the data given to it. If it is
 the onus of quality control is on the user.
 
 ## Types of Analysis
-CANDEW has 6 sections of analysis in the following order:
+CANDEW has 7 sections of analysis in the following order:
 1. Hour of Day (HoD) Analysis
 2. Day of Week (DoW) Analysis
 3. Day of Year (DoY) Analysis
 4. Tower Location Analysis
 5. Contacts Analysis
 6. Duration Analysis
+7. Cohort Survivorship Analysis
 
 Each section follows a standard format, consisting of a `total count analysis`, a `calling count analysis` and a 
 `called count analysis` (and in the case of the Tower Location Analysis section, a `total location count analysis`, 
@@ -137,6 +138,42 @@ as an outlier can be set using the "-z, --zscore" arg. Below is an example of a 
  [*] Call Duration: 1782 seconds (29 minutes)
  [*] Z-Score: 3.09
 ```
+
+### Cohort Survivorship Analysis
+The cohort survivorship analysis section focuses on examining how long a contact survives throughout the DNR data on a weekly
+basis. In this section, the user is shown which contacts appear in which weeks and is also shown a count of the total number of
+weeks that a contact is communicated with. This helps the user identify which contacts are consistently communicating with the
+target throughout the duration of the DNR data. Below is an example of how the analysis results are displayed to the user:
+```
+=================================== COHORT SURVIVORSHIP ANALYSIS ===================================
+
+ [*] Total number of weeks: 3
+
+ Week 41 (2004-10-06 - 2004-10-10)
+ ---------------------------------
+ bob
+ carol
+ dave
+ eve
+
+ Week 42 (2004-10-11 - 2004-10-11)
+ ---------------------------------
+ bob
+ carol
+ superlongname
+
+ Week 49 (2004-11-29 - 2004-11-29)
+ ---------------------------------
+ carol
+
+ Survivorship counts per contact
+ -------------------------------
+ carol:         [====================] 100.0% - (3/3)
+ bob:           [=============       ] 66.67% - (2/3)
+ superlongname: [=======             ] 33.33% - (1/3)
+ eve:           [=======             ] 33.33% - (1/3)
+ dave:          [=======             ] 33.33% - (1/3)
+```   
 
 ## Errors
 The following is a list of all error names, their descriptions and what might cause them:

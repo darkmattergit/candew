@@ -439,8 +439,9 @@ conn = sqlite3.connect(".candew_dnr.db")
 crsr = conn.cursor()
 
 # Create table if it does not exist
-crsr.execute("CREATE TABLE IF NOT EXISTS dnr_records (event_line TEXT, call_date TEXT, call_dow TEXT, call_time TEXT, "
-             "call_init TEXT, call_recv TEXT, call_duration TEXT, start_location TEXT, end_location TEXT)")
+crsr.execute("CREATE TABLE IF NOT EXISTS dnr_records (event_line TEXT, call_date TEXT, call_dow TEXT, call_woy TEXT, "
+             "call_time TEXT, call_init TEXT, call_recv TEXT, call_duration TEXT, start_location TEXT, "
+             "end_location TEXT)")
 conn.commit()
 
 # Clear any data that may have been left over from previous analysis
@@ -498,19 +499,24 @@ with (open(dnr_record, "r") as dr):
         call_date_dow_tuple = call_date.split("-")
 
         # Assign tuple values to variables to make understanding what is going on easier
-        call_date_dow_tuple_year = int(call_date_dow_tuple[0])
-        call_date_dow_tuple_month = int(call_date_dow_tuple[1])
-        call_date_dow_tuple_day = int(call_date_dow_tuple[2])
+        call_date_tuple_year = int(call_date_dow_tuple[0])
+        call_date_tuple_month = int(call_date_dow_tuple[1])
+        call_date_tuple_day = int(call_date_dow_tuple[2])
 
-        # Determine Day of Week (DoW)
-        call_date_dow_int = datetime.date(call_date_dow_tuple_year, call_date_dow_tuple_month,
-                                          call_date_dow_tuple_day).weekday()
+        # Construct a date object
+        construct_event_date = datetime.date(call_date_tuple_year, call_date_tuple_month, call_date_tuple_day)
+
+        # Determine event Day of Week (DoY) int
+        call_event_dow = datetime.date.isocalendar(construct_event_date)[2]
+
+        # Determine event Week of Year (Woy)
+        call_event_woy = datetime.date.isocalendar(construct_event_date)[1]
 
         # Count the total number of records
         total_call_count += 1
 
         # Count number of records that occurred on weekdays
-        if call_date_dow_int <= 4:
+        if call_event_dow <= 5:
             weekday_count += 1
 
         # Count number of records that occurred on weekends
@@ -518,12 +524,9 @@ with (open(dnr_record, "r") as dr):
             weekend_count += 1
 
         # Insert data to SQLite file
-        crsr.execute("INSERT INTO dnr_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (event_line_count,
-                                                                                    call_date,
-                                                                      DAYS_OF_WEEK_TUPLE[call_date_dow_int],
-                                                                      call_time[:2], call_init, call_recv,
-                                                                      call_duration, call_start_location,
-                                                                      call_end_location))
+        crsr.execute("INSERT INTO dnr_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (event_line_count, call_date, DAYS_OF_WEEK_TUPLE[call_event_dow - 1], call_event_woy,
+                      call_time[:2], call_init, call_recv, call_duration, call_start_location, call_end_location))
         conn.commit()
 
 print("[*] Running checks to ensure data was loaded correctly")
@@ -910,8 +913,71 @@ else:
     # No call events where duration is > 0, skip duration analysis section
     print("[!] No events with call duration > 0 found, skipping duration analysis")
 
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ COHORT SURVIVORSHIP ANALYSIS //////////////////////////////////
+
+# Get the event weeks, as well as the start date and end dates of each event week
+crsr.execute("SELECT call_woy, min(call_date), max(call_date) FROM dnr_records GROUP BY 1 ORDER BY 1 ASC")
+weeks_minimum_maximum = crsr.fetchall()
+
+print("=================================== COHORT SURVIVORSHIP ANALYSIS ===================================")
+print()
+print(f" [*] Total number of weeks: {len(weeks_minimum_maximum)}")
+print()
+
+# Zero the dict containing all contacts
+zero_dict(ordered_called_duration)
+
+# Iterate through the week data
+for woys, date_minimum, date_maximum in weeks_minimum_maximum:
+
+    # Initialize an empty set to hold all contacts found within current week
+    contacts_set = set({})
+
+    # Format the week header so that its len can be calculated to determine len of underline
+    formatted_week_data = f" Week {woys} ({date_minimum} - {date_maximum})"
+    print(formatted_week_data)
+    print(f" {'-' * (len(formatted_week_data) - 1)}")
+
+    # Get all calling contacts from current week and add to set
+    crsr.execute("SELECT DISTINCT call_init FROM dnr_records WHERE call_init != ? AND call_woy = ?",
+                 (args.target, woys))
+    ic = crsr.fetchall()
+    for init_contacts in ic:
+        contacts_set.add(init_contacts)
+
+
+    # Get all called contacts from current week and add to set
+    crsr.execute("SELECT DISTINCT call_recv FROM dnr_records WHERE call_recv != ? AND call_woy = ?",
+                 (args.target, woys))
+    rc = crsr.fetchall()
+    for recv_contacts in rc:
+        contacts_set.add(recv_contacts)
+
+    # Sort the set alphabetically
+    sorted_contacts_set = sorted(contacts_set)
+
+    # Display the contacts found within current week and add counts to contacts in contact dict
+    for conts in sorted_contacts_set:
+        print(f" {conts[0]}")
+        ordered_called_duration[conts[0]] += 1
+
+    print()
+
+print(" Survivorship counts per contact")
+print(" -------------------------------")
+
+# Order the contacts dict containing the survivorship sums
+survivorship_dict = order_dict(ordered_called_duration)
+
+# Display the results
+display_results(survivorship_dict, len(weeks_minimum_maximum))
+
 # Clear out DNR data
 crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
+conn.commit()
+
+# Drop table so that any changes made to table structure do not cause an error later on
+crsr.execute("DROP TABLE dnr_records")
 conn.commit()
 
 # Close SQLite file
