@@ -189,11 +189,11 @@ def create_total_dict(list1: list = None, list2: list = None) -> dict:
     return total_dict
 
 
-def order_dict(dict_to_order: dict = None) -> dict:
+def order_dict(dict_to_order: dict = None) -> None:
     """
     Order a dict from highest to lowest values.
     :param dict_to_order: The dict that is to be ordered
-    :return: dict
+    :return: None
     """
     # Initialize dict that will hold the ordered key-value pairs
     ordered_dict = {}
@@ -213,7 +213,9 @@ def order_dict(dict_to_order: dict = None) -> dict:
         ordered_dict[highest_key] = highest_key_val
         del dict_to_order[highest_key]
 
-    return ordered_dict
+    # Add the ordered key-value pairs back into the original dict
+    for ordered in ordered_dict:
+        dict_to_order[ordered] = ordered_dict[ordered]
 
 
 def zero_dict(dict_to_zero: dict = None) -> None:
@@ -737,43 +739,43 @@ crsr.execute("SELECT DISTINCT end_location, COUNT(*) FROM dnr_records GROUP BY 1
 end_location_counts = crsr.fetchall()
 
 # Create dict that contains all tower locations and their counts
-total_location_count = create_total_dict(start_location_counts, end_location_counts)
+total_location_dict = create_total_dict(start_location_counts, end_location_counts)
 
 # Order the dict from highest to lowest
-ordered_total_location_dict = order_dict(total_location_count)
+order_dict(total_location_dict)
 
 # Display results
 print("=================================== TOWER LOCATION ANALYSIS ===================================")
 print()
 
-print(f" [*] Total number of unique tower locations: {len(ordered_total_location_dict)}")
+print(f" [*] Total number of unique tower locations: {len(total_location_dict)}")
 print()
 
 print(" Total counts per tower location")
 print(" -------------------------------")
-display_results(ordered_total_location_dict, (total_call_count * 2))
+display_results(total_location_dict, (total_call_count * 2))
 
 # Zero the master dict
-zero_dict(ordered_total_location_dict)
+zero_dict(total_location_dict)
 # Add the start location data to the dict
-add_to_dict(ordered_total_location_dict, start_location_counts)
+add_to_dict(total_location_dict, start_location_counts)
 # Sort the dict
-start_location_ordered = order_dict(ordered_total_location_dict)
+order_dict(total_location_dict)
 
 print(" Counts per START tower location")
 print(" -------------------------------")
-display_results(start_location_ordered, total_call_count)
+display_results(total_location_dict, total_call_count)
 
 # Zero the master dict
-zero_dict(ordered_total_location_dict)
+zero_dict(total_location_dict)
 # Add the end location data to the dict
-add_to_dict(ordered_total_location_dict, end_location_counts)
+add_to_dict(total_location_dict, end_location_counts)
 # Sort the dict
-end_location_ordered = order_dict(ordered_total_location_dict)
+order_dict(total_location_dict)
 
 print(" Counts per END tower location")
 print(" -----------------------------")
-display_results(end_location_ordered, total_call_count)
+display_results(total_location_dict, total_call_count)
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ CONTACTS ANALYSIS //////////////////////////////////
 
@@ -785,46 +787,46 @@ crsr.execute("SELECT DISTINCT call_recv, COUNT(*) FROM dnr_records WHERE call_re
              "DESC",(args.target,))
 unique_call_recv_contacts = crsr.fetchall()
 
-total_unique_contacts_dict = create_total_dict(unique_call_init_contacts, unique_call_recv_contacts)
+total_contacts_dict = create_total_dict(unique_call_init_contacts, unique_call_recv_contacts)
 
-ordered_total_unique_contacts_dict = order_dict(total_unique_contacts_dict)
+order_dict(total_contacts_dict)
 
 print("=================================== CONTACTS ANALYSIS ===================================")
 print()
 
-print(f" [*] Total number of unique contacts: {len(ordered_total_unique_contacts_dict)}")
+print(f" [*] Total number of unique contacts: {len(total_contacts_dict)}")
 print()
 
 print(" Total events per contact")
 print(" ------------------------")
-display_results(ordered_total_unique_contacts_dict, total_call_count)
-count_total_events_dict(ordered_total_unique_contacts_dict, total_call_count)
+display_results(total_contacts_dict, total_call_count)
+count_total_events_dict(total_contacts_dict, total_call_count)
 
 # ************************************* TARGET IS CALLING CONTACTS *************************************
 # Zero the master dict
-zero_dict(ordered_total_unique_contacts_dict)
+zero_dict(total_contacts_dict)
 # Add the call init data to the dict
-add_to_dict(ordered_total_unique_contacts_dict, unique_call_init_contacts)
+add_to_dict(total_contacts_dict, unique_call_init_contacts)
 # Sort the dict
-call_init_ordered = order_dict(ordered_total_unique_contacts_dict)
+order_dict(total_contacts_dict)
 
 print(" Total CALLING events per contact")
 print(" --------------------------------")
-display_results(call_init_ordered, total_call_count)
-count_total_events_dict(call_init_ordered, total_call_count)
+display_results(total_contacts_dict, total_call_count)
+count_total_events_dict(total_contacts_dict, total_call_count)
 
 # ************************************* TARGET IS BEING CALLED BY CONTACTS *************************************
 # Zero the master dict
-zero_dict(ordered_total_unique_contacts_dict)
+zero_dict(total_contacts_dict)
 # Add the call recv data to the dict
-add_to_dict(ordered_total_unique_contacts_dict, unique_call_recv_contacts)
+add_to_dict(total_contacts_dict, unique_call_recv_contacts)
 # Sort the dict
-call_recv_ordered = order_dict(ordered_total_unique_contacts_dict)
+order_dict(total_contacts_dict)
 
 print(" Total CALLED events per contact")
 print(" -------------------------------")
-display_results(call_recv_ordered, total_call_count)
-count_total_events_dict(call_recv_ordered, total_call_count)
+display_results(total_contacts_dict, total_call_count)
+count_total_events_dict(total_contacts_dict, total_call_count)
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ DURATION ANALYSIS //////////////////////////////////
 
@@ -845,7 +847,7 @@ if call_event_counts > 0:
 
     # Create and order the dict containing all contacts and the total call durations in seconds
     durations_total_dict = create_total_dict(call_init_durations, call_recv_durations)
-    ordered_durations_total_dict = order_dict(durations_total_dict)
+    order_dict(durations_total_dict)
 
     print("=================================== DURATION ANALYSIS ===================================")
     print()
@@ -853,8 +855,8 @@ if call_event_counts > 0:
 
     # Calculate the total call duration by adding all contact call durations together
     total_call_seconds = 0
-    for call_minutes in ordered_durations_total_dict:
-        total_call_seconds += ordered_durations_total_dict[call_minutes]
+    for call_minutes in durations_total_dict:
+        total_call_seconds += durations_total_dict[call_minutes]
 
     # Calculate minutes from seconds
     total_call_minutes = round(total_call_seconds / 60)
@@ -863,27 +865,27 @@ if call_event_counts > 0:
 
     print(" Total duration sums per contact")
     print(" -------------------------------")
-    display_duration_results(ordered_durations_total_dict, total_call_seconds)
+    display_duration_results(durations_total_dict, total_call_seconds)
 
     print(" Total CALLING event duration sums per contact")
     print(" ---------------------------------------------")
     # Zero the total dict
-    zero_dict(ordered_durations_total_dict)
+    zero_dict(durations_total_dict)
     # Add calling event durations to master dict
-    add_to_dict(ordered_durations_total_dict, call_init_durations)
+    add_to_dict(durations_total_dict, call_init_durations)
     # Order master dict
-    ordered_calling_duration = order_dict(ordered_durations_total_dict)
-    display_duration_results(ordered_calling_duration, total_call_seconds)
+    order_dict(durations_total_dict)
+    display_duration_results(durations_total_dict, total_call_seconds)
 
     print(" Total CALLED event duration sums per contact")
     print(" --------------------------------------------")
     # Zero the master dict
-    zero_dict(ordered_calling_duration)
+    zero_dict(durations_total_dict)
     # Add called events durations to master dict
-    add_to_dict(ordered_calling_duration, call_recv_durations)
+    add_to_dict(durations_total_dict, call_recv_durations)
     # Order master dict
-    ordered_called_duration = order_dict(ordered_calling_duration)
-    display_duration_results(ordered_called_duration, total_call_seconds)
+    order_dict(durations_total_dict)
+    display_duration_results(durations_total_dict, total_call_seconds)
 
     # Get all events where call duration is > 0
     crsr.execute("SELECT event_line, call_date, call_time, call_init, call_recv, call_duration FROM dnr_records WHERE "
@@ -933,7 +935,7 @@ print(f" [*] Total number of weeks: {len(weeks_minimum_maximum)}")
 print()
 
 # Zero the dict containing all contacts
-zero_dict(ordered_called_duration)
+zero_dict(total_contacts_dict)
 
 # Iterate through the week data
 for woys, date_minimum, date_maximum in weeks_minimum_maximum:
@@ -967,7 +969,7 @@ for woys, date_minimum, date_maximum in weeks_minimum_maximum:
     # Display the contacts found within current week and add counts to contacts in contact dict
     for conts in sorted_contacts_set:
         print(f" {conts[0]}")
-        ordered_called_duration[conts[0]] += 1
+        total_contacts_dict[conts[0]] += 1
 
     print()
 
@@ -975,10 +977,10 @@ print(" Survivorship counts per contact")
 print(" -------------------------------")
 
 # Order the contacts dict containing the survivorship sums
-survivorship_dict = order_dict(ordered_called_duration)
+order_dict(total_contacts_dict)
 
 # Display the results
-display_results(survivorship_dict, len(weeks_minimum_maximum))
+display_results(total_contacts_dict, len(weeks_minimum_maximum))
 
 # Clear out DNR data
 crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
