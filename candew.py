@@ -1,6 +1,6 @@
 """
 CANDEW\n
-v1.0.1\n
+v1.0.2\n
 `Dialed Number Records (DNR) traffic analysis tool`\n
 `Copyright (C) 2026 darkmattergit`\n
 --------------------------------------------\n
@@ -48,7 +48,7 @@ HOURS_OF_DAY_TUPLE = (
 )
 
 # CANDEW version number constant
-CANDEW_VERSION = "1.0.1"
+CANDEW_VERSION = "1.0.2"
 
 # Opening banner constant
 CANDEW_BANNER = r"""   
