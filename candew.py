@@ -493,6 +493,20 @@ with (open(dnr_record, "r") as dr):
         call_start_location = event_data[5].strip()
         call_end_location = event_data[6].strip()
 
+        # Special check to catch any events where the call duration is < 0
+        if int(call_duration) < 0:
+            print(f"[!] callDurationNegativeError :: The call duration of entry {event_line_count} is {call_duration}, "
+                  f"call duration cannot be < 0")
+
+            # Call duration is < 0, clean up and exit
+            crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
+            conn.commit()
+
+            crsr.execute("DROP TABLE dnr_records")
+            conn.commit()
+
+            exit()
+
         # Special check to catch any entries where both the calling and called numbers belong to the target
         if call_init == dnr_target and call_recv == dnr_target:
             target_number_count += 1
