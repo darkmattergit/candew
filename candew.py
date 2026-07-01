@@ -789,7 +789,7 @@ add_to_dict(total_location_dict, start_location_counts)
 # Sort the dict
 order_dict(total_location_dict)
 
-print(" Counts per START tower location")
+print(" Total Counts per START tower location")
 print(" -------------------------------")
 display_results(total_location_dict, total_call_count)
 
@@ -800,7 +800,7 @@ add_to_dict(total_location_dict, end_location_counts)
 # Sort the dict
 order_dict(total_location_dict)
 
-print(" Counts per END tower location")
+print(" Total Counts per END tower location")
 print(" -----------------------------")
 display_results(total_location_dict, total_call_count)
 
