@@ -927,7 +927,7 @@ if call_event_counts > 0:
     # Calculate standard deviation, round it to 2 decimal places
     get_std_deviation = 0
     for stdev_values in zscore_data:
-        get_std_deviation += (round(((int(stdev_values[5]) - average_call_duration) ** 2), 2))
+        get_std_deviation += round(((int(stdev_values[5]) - average_call_duration) ** 2), 2)
 
     get_std_deviation = round(math.sqrt(get_std_deviation / len(zscore_data)), 2)
 
