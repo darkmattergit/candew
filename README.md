@@ -186,6 +186,12 @@ The following is a list of all error names, their descriptions and what might ca
 * `targetCountMismatchError`: `Target occurrence count does not match number of DNR events: 'TARGET COUNT/TOTAL EVENT COUNT'`. This error occurs if the number of times the target's number/name shows up in the DNR data is not equal to the number of events. This could be because either the target occurs too many times in the event data (ex. an entry shows the calling and called number both to belong to the target) or occurs too few times (ex. an entry shows the calling and called number to belong to two different contacts, neither one being the target). To resolve this issue, you will need to go through the DNR data file and determine which entries are causing the error. Once fixed, try again. 
 * `callDurationNegativeError`: `The call duration of entry 'LINE NUMBER' is 'CALL DURATION', call duration cannot be < 0`. This error occurs when the call duration of a DNR event is < 0. To resolve this issue, check the entry line number provided by the error to see which entry in the CSV file is causing the problem.
 
+## Generating Test Data
+The `generate_test_dnr_data.py` file is used to generate a small set of example DNR data to test CANDEW during development. 
+However, it is also meant to be used by users as a way to learn how to use CANDEW as well. The script contains a list of 
+fictional DNR data that is written to a CSV file called `test_data.csv`. It also contains commented events that can be uncommented
+to test certain error checks.
+
 ## Terminology
 This section provides a list of terminology used in CANDEW and their definitions:
 * `Dialed Number Records (DNR)`: A file containing the phone record metadata.
