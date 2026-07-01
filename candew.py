@@ -478,6 +478,10 @@ with (open(dnr_record, "r") as dr):
             # Element count was not equal to 6, clean up and exit
             crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
             conn.commit()
+
+            crsr.execute("DROP TABLE dnr_records")
+            conn.commit()
+
             exit()
 
         # Assign elements of entry to variables to make it easier to understand which is which
@@ -544,6 +548,9 @@ if confirm_load_count != total_call_count:
     crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
     conn.commit()
 
+    crsr.execute("DROP TABLE dnr_records")
+    conn.commit()
+
     crsr.close()
     conn.close()
     exit()
@@ -558,6 +565,9 @@ if target_number_count <= 0:
     crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
     conn.commit()
 
+    crsr.execute("DROP TABLE dnr_records")
+    conn.commit()
+
     crsr.close()
     conn.close()
     exit()
@@ -570,6 +580,9 @@ if target_number_count != total_call_count:
 
     # Target appears too many/too few times in DNR data, clean up and exit
     crsr.execute("DELETE FROM dnr_records WHERE call_date LIKE '%%'")
+    conn.commit()
+
+    crsr.execute("DROP TABLE dnr_records")
     conn.commit()
 
     crsr.close()
